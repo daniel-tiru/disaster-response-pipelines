@@ -15,6 +15,7 @@ from sklearn.ensemble import AdaBoostClassifier
 from sklearn.base import BaseEstimator, TransformerMixin
 
 from sklearn.model_selection import train_test_split
+from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import classification_report, accuracy_score
 
 import pickle
@@ -22,6 +23,17 @@ import pickle
 nltk.download(['stopwords','punkt','wordnet', 'averaged_perceptron_tagger'])
 
 def load_data(database_filepath):
+    """Load the data from a database and split it in messages and categories
+
+    Args:
+        database_filepath (str): path to the database file
+
+    Returns:
+        X: the messages
+        Y: the categories
+        features: list with the names of the categories
+
+    """  
     engine = create_engine('sqlite:///'+database_filepath)
     df = pd.read_sql_table('Messages', engine)
     
@@ -32,6 +44,18 @@ def load_data(database_filepath):
 
 
 def tokenize(text):
+    """Convert a text in a set of words
+    
+    The text is normaized then split in words. English stop words are removed from the text
+    The remaining words(nouns and verbs) are reduced to their root form
+
+    Args:
+        text (str): input text
+
+    Returns:
+        An list of words that are converted to their root form
+
+    """  
     # normalize remove punctuation characters
     text = re.sub(r"[^a-zA-Z0-9]", " ", text.lower()) 
     
@@ -68,7 +92,13 @@ class StartingVerbExtractor(BaseEstimator, TransformerMixin):
 
 
 def build_model():
-    return Pipeline([
+    """Builds a pipeline and tunes parameters with grid search
+
+    Returns:
+        The model
+
+    """  
+    pipeline = Pipeline([
             ('features', FeatureUnion([
 
                 ('text_pipeline', Pipeline([
@@ -80,8 +110,28 @@ def build_model():
             ])),
             ('clf', MultiOutputClassifier(AdaBoostClassifier()))
         ])
+    
+    parameters = {
+        'features__text_pipeline__vect__max_df': (0.5, 1.0),
+        'features__text_pipeline__tfidf__use_idf': (True, False),
+        'clf__estimator__n_estimators': [50, 100]
+    }
+
+    return GridSearchCV(pipeline, param_grid=parameters, n_jobs=-1, verbose=2)
 
 def evaluate_model(model, X_test, Y_test, category_names):
+    """Prints out precision, recall, f1-score and accuracy for the model on each category
+
+    Args:
+        model (sklearn.model_selection): the model
+        X_test (DataFrame): test data
+        Y_test (DataFrame): expected categories
+        category_names (list): list of available categories
+
+    Returns:
+        None
+
+    """  
     Y_pred = model.predict(X_test)
     
     for i in range(len(category_names)):
@@ -90,6 +140,16 @@ def evaluate_model(model, X_test, Y_test, category_names):
 
 
 def save_model(model, model_filepath):
+    """Stores the model in a pickle file
+
+    Args:
+        model (sklearn.model_selection): the model
+        model_filepath (str): path to the file where the model is stored
+
+    Returns:
+        None
+
+    """  
     pickle.dump(model, open(model_filepath, 'wb'))
 
 
