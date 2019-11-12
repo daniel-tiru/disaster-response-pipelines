@@ -3,7 +3,7 @@
 ### Description:
 <p>This project uses a dataset with pre-labeled tweets and text messages provided by Figure Eight describing real life disasters to learn and predict which category of disaster response professionals should be alerted about an incident.</p>
 
-![Disaster Response Pipeline](https://github.com/daniel-tiru/disaster-response-pipelines/tree/master/screenshots/input.jpg)
+![Disaster Response Pipeline](screenshots/input.jpg)
 
 The project is divided in the following parts:
 	* ETEL pipeline to extract, clean and save the messages in a database
@@ -21,7 +21,7 @@ The models folders contains the *train_classifier.py* file that loads the databa
 The app folder is divided in two parts: the html files from the templates folder and two python files that use the trained model to classify the user input and provide some visualizations over the data in the dataset.
 
 The classification output looks like this.
-![Results](https://github.com/daniel-tiru/disaster-response-pipelines/tree/master/screenshots/results.jpg)
+![Results](screenshots/results.jpg)
 
 ### Instructions:
 1. Run the following commands in the project's root directory to set up your database and model.
